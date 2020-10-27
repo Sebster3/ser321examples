@@ -1,5 +1,5 @@
 /*
-Simple Web Server in Java which allows you to call 
+Simple Web Server in Java which allows you to call
 localhost:9000/ and show you the root.html webpage from the www/root.html folder
 You can also do some other simple GET requests:
 1) /random shows you a random picture (well random from the set defined)
@@ -9,8 +9,8 @@ You can also do some other simple GET requests:
 5) /github?query=users/amehlhase316/repos (or other GitHub repo owners) will lead to receiving
    JSON which will for now only be printed in the console. See the todo below
 
-The reading of the request is done "manually", meaning no library that helps making things a 
-little easier is used. This is done so you see exactly how to pars the request and 
+The reading of the request is done "manually", meaning no library that helps making things a
+little easier is used. This is done so you see exactly how to pars the request and
 write a response back
 */
 
@@ -202,21 +202,26 @@ class WebServer {
           query_pairs = splitQuery(request.replace("multiply?", ""));
 
           // extract required fields from parameters
-          Integer num1 = Integer.parseInt(query_pairs.get("num1"));
-          Integer num2 = Integer.parseInt(query_pairs.get("num2"));
+          try {
+            Integer num1 = Integer.parseInt(query_pairs.get("num1"));
+            Integer num2 = Integer.parseInt(query_pairs.get("num2"));
 
-          // do math
-          Integer result = num1 * num2;
+            // do math
+            Integer result = num1 * num2;
 
-          // Generate response
-          builder.append("HTTP/1.1 200 OK\n");
-          builder.append("Content-Type: text/html; charset=utf-8\n");
-          builder.append("\n");
-          builder.append("Result is: " + result);
+            // Generate response
+            builder.append("HTTP/1.1 200 OK\n");
+            builder.append("Content-Type: text/html; charset=utf-8\n");
+            builder.append("\n");
+            builder.append("Result is: " + result);
 
-          // TODO: Include error handling here with a correct error code and
-          // a response that makes sense
-
+          } catch (NumberFormatException e) {
+            // Catch an error
+            builder.append("HTTP/1.1 400 Bad Request\n");
+            builder.append("Content-Type: text/html; charset=utf-8\n");
+            builder.append("\n");
+            builder.append("400: Invalid input. 'num1' and num2' required.");
+          };
         } else if (request.contains("github?")) {
           // pulls the query from the request and runs it with GitHub's REST API
           // check out https://docs.github.com/rest/reference/
@@ -331,7 +336,7 @@ class WebServer {
    * a method to make a web request. Note that this method will block execution
    * for up to 20 seconds while the request is being satisfied. Better to use a
    * non-blocking request.
-   * 
+   *
    * @param aUrl the String indicating the query url for the OMDb api search
    * @return the String result of the http request.
    *
