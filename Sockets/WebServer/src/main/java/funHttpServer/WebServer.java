@@ -18,6 +18,7 @@ package funHttpServer;
 
 import java.io.*;
 import java.net.*;
+import org.json.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -233,14 +234,26 @@ class WebServer {
 
           Map<String, String> query_pairs = new LinkedHashMap<String, String>();
           query_pairs = splitQuery(request.replace("github?", ""));
-          String json = fetchURL("https://api.github.com/" + query_pairs.get("query"));
+          String reply = fetchURL("https://api.github.com/" + query_pairs.get("query"));
 
+          JSONArray json = new JSONArray(reply);
+
+          StringBuilder output = new StringBuilder();
+          // output.append(json.getJSONObject(0).getObject("owner").getString("login") + "\n");
+
+          for (int i = 0; i < json.length(); i++){
+            JSONObject repo = json.getJSONObject(i);
+            JSONObject owner = repo.getJSONObject("owner");
+
+            output.append(owner.getString("login"));
+            output.append(" (" + owner.getNumber("id") + ") -> ");
+            output.append(repo.getString("name") + "\n");
+          }
           builder.append("HTTP/1.1 200 OK\n");
           builder.append("Content-Type: application/json; charset=utf-8\n");
           builder.append("\n");
-          builder.append("<html>\n<head></head>\n<pre style='word-wrap: break-word; white-space: pre-wrap;'>\n");
-          builder.append(json);
-          builder.append("</pre></body></html>");
+          builder.append(output);
+
           // TODO: Parse the JSON returned by your fetch and create an appropriate
           // response
           // and list the owner name, owner id and name of the public repo on your webpage, e.g.
